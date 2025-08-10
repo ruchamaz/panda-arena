@@ -139,6 +139,8 @@
     (function() {
       const canvas = document.getElementById('gameCanvas');
       const ctx = canvas.getContext('2d');
+      // Disable image smoothing for crisp pixel-art look
+      ctx.imageSmoothingEnabled = false;
       const WIDTH = canvas.width;
       const HEIGHT = canvas.height;
       // Load pixel art assets for arcade-style graphics
@@ -146,6 +148,9 @@
       backgroundImg.src = 'assets/burning.png';
       const minotaurImg = new Image();
       minotaurImg.src = 'assets/minotaur.png';
+      // Panda sprite sheet for pixel-art player
+      const pandaImg = new Image();
+      pandaImg.src = 'assets/panda.png';
 
       // Physics constants
       const GRAVITY = 0.5;
@@ -243,10 +248,18 @@
           }
         }
         draw(ctx) {
-          // Draw panda body (rounded rectangle)
           const px = this.x;
           const py = this.y;
-          // Body
+          // If sprite sheet loaded, draw pixel-art panda and exit early
+          if (pandaImg.complete && pandaImg.naturalWidth) {
+            const cols = 5;
+            const rows = 4;
+            const frameW = pandaImg.width / cols;
+            const frameH = pandaImg.height / rows;
+            ctx.drawImage(pandaImg, 0, 0, frameW, frameH, px, py - 8, this.w, this.h + 8);
+            return;
+          }
+          // Draw panda body (rounded rectangle)
           ctx.fillStyle = '#fff';
           ctx.strokeStyle = '#000';
           ctx.lineWidth = 2;
@@ -278,15 +291,29 @@
       }
 
       class Star {
-        constructor(x, y) {
+        constructor(x) {
+          // Stars spawn high above the arena and fall down until they land
+          this.size = 24; // Larger size for retro arcade feel
           this.x = x;
-          this.y = y;
-          this.size = 16;
+          // Start above the visible screen so stars fall into the arena
+          this.y = -this.size;
+          // Vertical speed; randomize a bit to vary the fall
+          this.vy = 1 + Math.random() * 1;
           this.collected = false;
+          this.landed = false;
         }
         update() {
-          // Stars remain in place; no automatic movement or off‑screen removal.
-          // They will be marked as collected when the player touches them.
+          // Make star fall until it lands on the ground
+          if (!this.landed) {
+            this.y += this.vy;
+            // When the bottom of the star reaches the ground, stop it there
+            if (this.y + this.size / 2 >= groundLevel) {
+              this.y = groundLevel - this.size / 2;
+              this.vy = 0;
+              this.landed = true;
+            }
+          }
+          // Stars will be marked as collected when the player touches them
         }
         draw(ctx) {
           drawStar(ctx, this.x, this.y, 5, this.size / 2, this.size);
@@ -302,7 +329,7 @@
           this.y = y;
           this.vx = vx;
           this.vy = vy;
-          this.size = 12;
+          this.size = 16; // Larger size for retro arcade style spells
           this.active = true;
         }
         update() {
@@ -553,14 +580,12 @@
         scoreDisplay.textContent = score;
       }
 
-      // Spawn a new star at random x above the screen
+      // Spawn a new falling star at a random horizontal position
       function spawnStar() {
-        // Spawn stars at random positions within the arena (not moving).
-        // Ensure they don't spawn too close to the edges or ground.
+        // Choose a horizontal position with some margin from the edges
         const x = 20 + Math.random() * (WIDTH - 40);
-        // Spawn within upper portion of arena so stars aren't hidden inside ground or platforms.
-        const y = 80 + Math.random() * (groundLevel - 160);
-        stars.push(new Star(x, y));
+        // Create a falling star at this x position. It will spawn above the arena and fall down.
+        stars.push(new Star(x));
       }
 
       // Spawn spells from the minotaur directed roughly toward the player
@@ -677,6 +702,9 @@
         minotaur.draw(ctx);
         // Draw player
         player.draw(ctx);
+        // Apply a semi-transparent tint over the scene to give a retro arcade vibe
+        ctx.fillStyle = 'rgba(50, 30, 30, 0.2)';
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
       }
 
       // Background art: simple gradient and silhouettes
