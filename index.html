@@ -65,6 +65,8 @@
       display: none;
       justify-content: center;
       z-index: 9;
+  /* Ensure mobile buttons retain left-to-right order even in RTL layouts */
+  direction: ltr;
     }
 
     .ui-btn {
@@ -139,6 +141,11 @@
       const ctx = canvas.getContext('2d');
       const WIDTH = canvas.width;
       const HEIGHT = canvas.height;
+      // Load pixel art assets for arcade-style graphics
+      const backgroundImg = new Image();
+      backgroundImg.src = 'assets/burning.png';
+      const minotaurImg = new Image();
+      minotaurImg.src = 'assets/minotaur.png';
 
       // Physics constants
       const GRAVITY = 0.5;
@@ -207,6 +214,11 @@
           // World bounds
           if (this.x < 0) this.x = 0;
           if (this.x + this.w > WIDTH) this.x = WIDTH - this.w;
+          // Prevent the player from exiting above the canvas
+          if (this.y < 0) {
+            this.y = 0;
+            this.vy = 0;
+          }
 
           // Ground collision
           if (this.y + this.h >= groundLevel) {
@@ -273,9 +285,8 @@
           this.collected = false;
         }
         update() {
-          // Stars fall slowly downward
-          this.y += 0.5;
-          if (this.y > HEIGHT) this.collected = true;
+          // Stars remain in place; no automatic movement or off‑screen removal.
+          // They will be marked as collected when the player touches them.
         }
         draw(ctx) {
           drawStar(ctx, this.x, this.y, 5, this.size / 2, this.size);
@@ -321,45 +332,102 @@
 
       class Minotaur {
         constructor() {
-          this.w = 60;
-          this.h = 60;
+          // Use a larger size so the minotaur stands out
+          this.w = 120;
+          this.h = 120;
+          // Start near the center of the screen
           this.x = WIDTH / 2 - this.w / 2;
-          this.y = 60;
+          // Start on the ground
+          this.y = groundLevel - this.h;
+          // Horizontal and vertical velocity for movement and jumping
+          this.vx = 2;
+          this.vy = 0;
+          this.onGround = false;
+          this.jumpTimer = 0;
         }
         update() {
-          // Could add movement or pattern later
+          // Apply horizontal movement and bounce off edges
+          this.x += this.vx;
+          if (this.x <= 0 || this.x + this.w >= WIDTH) {
+            this.vx *= -1;
+            // Clamp within bounds
+            if (this.x <= 0) this.x = 0;
+            if (this.x + this.w >= WIDTH) this.x = WIDTH - this.w;
+          }
+          // Apply gravity
+          this.vy += GRAVITY;
+          this.y += this.vy;
+          // Ground collision
+          if (this.y + this.h >= groundLevel) {
+            this.y = groundLevel - this.h;
+            this.vy = 0;
+            this.onGround = true;
+          } else {
+            this.onGround = false;
+          }
+          // Randomly jump if on ground
+          if (this.onGround) {
+            this.jumpTimer++;
+            if (this.jumpTimer > 120 && Math.random() < 0.03) {
+              this.vy = JUMP_SPEED * 1.2;
+              this.onGround = false;
+              this.jumpTimer = 0;
+            }
+          }
+          // TODO: Could add more complex patterns or targeted charges here
         }
         draw(ctx) {
-          // Body
-          ctx.fillStyle = '#7b4f2c';
-          ctx.strokeStyle = '#000';
-          ctx.lineWidth = 2;
-          roundRect(ctx, this.x, this.y, this.w, this.h, 8, true, true);
-          // Horns
-          ctx.fillStyle = '#f5f5f5';
-          ctx.beginPath();
-          ctx.moveTo(this.x + 10, this.y - 5);
-          ctx.lineTo(this.x + 5, this.y - 20);
-          ctx.lineTo(this.x + 15, this.y - 10);
-          ctx.closePath();
-          ctx.fill();
-          ctx.beginPath();
-          ctx.moveTo(this.x + this.w - 10, this.y - 5);
-          ctx.lineTo(this.x + this.w - 5, this.y - 20);
-          ctx.lineTo(this.x + this.w - 15, this.y - 10);
-          ctx.closePath();
-          ctx.fill();
-          // Eyes
-          ctx.fillStyle = '#fff';
-          ctx.beginPath();
-          ctx.arc(this.x + 15, this.y + 18, 5, 0, Math.PI * 2);
-          ctx.arc(this.x + this.w - 15, this.y + 18, 5, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = '#000';
-          ctx.beginPath();
-          ctx.arc(this.x + 15, this.y + 18, 2, 0, Math.PI * 2);
-          ctx.arc(this.x + this.w - 15, this.y + 18, 2, 0, Math.PI * 2);
-          ctx.fill();
+          // Draw the minotaur using a pixel art sprite. Crop the first frame from the sprite sheet.
+          if (minotaurImg.complete && minotaurImg.naturalWidth) {
+            const cols = 8; // number of columns in sprite sheet
+            const rows = 5; // number of rows in sprite sheet
+            const frameW = minotaurImg.width / cols;
+            const frameH = minotaurImg.height / rows;
+            // Use first frame (row 0, col 0)
+            ctx.drawImage(
+              minotaurImg,
+              0,
+              0,
+              frameW,
+              frameH,
+              this.x,
+              this.y,
+              this.w,
+              this.h
+            );
+          } else {
+            // If image not loaded, draw a stylized minotaur similar to the original design.
+            // Body
+            ctx.fillStyle = '#7b4f2c';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            roundRect(ctx, this.x, this.y, this.w, this.h, 8, true, true);
+            // Horns
+            ctx.fillStyle = '#f5f5f5';
+            ctx.beginPath();
+            ctx.moveTo(this.x + 15, this.y - 8);
+            ctx.lineTo(this.x + 10, this.y - 30);
+            ctx.lineTo(this.x + 25, this.y - 15);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(this.x + this.w - 15, this.y - 8);
+            ctx.lineTo(this.x + this.w - 10, this.y - 30);
+            ctx.lineTo(this.x + this.w - 25, this.y - 15);
+            ctx.closePath();
+            ctx.fill();
+            // Eyes
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(this.x + 25, this.y + 25, 6, 0, Math.PI * 2);
+            ctx.arc(this.x + this.w - 25, this.y + 25, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(this.x + 25, this.y + 25, 2, 0, Math.PI * 2);
+            ctx.arc(this.x + this.w - 25, this.y + 25, 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
       }
 
@@ -438,6 +506,7 @@
       let minotaur;
       let obstacles = [];
       let spells = [];
+      let lightnings = [];
       let stars = [];
       let lives;
       let score;
@@ -451,6 +520,7 @@
         minotaur = new Minotaur();
         obstacles = [];
         spells = [];
+        lightnings = [];
         stars = [];
         // Add some platforms and stones
         obstacles.push(new Obstacle(120, groundLevel - 140, 120, 20));
@@ -485,9 +555,12 @@
 
       // Spawn a new star at random x above the screen
       function spawnStar() {
-        const x = 50 + Math.random() * (WIDTH - 100);
-        const star = new Star(x, -20);
-        stars.push(star);
+        // Spawn stars at random positions within the arena (not moving).
+        // Ensure they don't spawn too close to the edges or ground.
+        const x = 20 + Math.random() * (WIDTH - 40);
+        // Spawn within upper portion of arena so stars aren't hidden inside ground or platforms.
+        const y = 80 + Math.random() * (groundLevel - 160);
+        stars.push(new Star(x, y));
       }
 
       // Spawn spells from the minotaur directed roughly toward the player
@@ -525,6 +598,9 @@
         // Update spells
         for (const sp of spells) sp.update();
         spells = spells.filter(sp => sp.active);
+        // Update lightning strikes
+        for (const l of lightnings) l.update();
+        lightnings = lightnings.filter(l => l.active);
         // Generate stars periodically
         starTimer += delta;
         if (starTimer > 4000) {
@@ -558,6 +634,29 @@
             }
           }
         }
+
+        // Check collisions between player and lightning strikes
+        for (const l of lightnings) {
+          if (rectsIntersect(player.rect, l.rect)) {
+            // Apply knockback: push player upward and sideways
+            player.vy = JUMP_SPEED * 1.2;
+            // Push horizontally away from the lightning center
+            if (player.x + player.w / 2 < l.x + l.w / 2) {
+              player.vx = -MOVE_SPEED * 2;
+            } else {
+              player.vx = MOVE_SPEED * 2;
+            }
+            // Deduct a life when struck by lightning
+            lives -= 1;
+            updateLivesDisplay();
+            // Remove the lightning so it doesn't repeatedly damage
+            l.active = false;
+            if (lives <= 0) {
+              showGameOver();
+              return;
+            }
+          }
+        }
       }
 
       // Draw everything on the canvas
@@ -572,6 +671,8 @@
         for (const star of stars) star.draw(ctx);
         // Draw spells
         for (const sp of spells) sp.draw(ctx);
+        // Draw lightning strikes
+        for (const l of lightnings) l.draw(ctx);
         // Draw minotaur
         minotaur.draw(ctx);
         // Draw player
@@ -580,37 +681,17 @@
 
       // Background art: simple gradient and silhouettes
       function drawBackground() {
-        // Sky gradient
-        const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
-        sky.addColorStop(0, '#1a1a1a');
-        sky.addColorStop(1, '#330000');
-        ctx.fillStyle = sky;
-        ctx.fillRect(0, 0, WIDTH, HEIGHT);
-        // Buildings silhouette
-        ctx.fillStyle = '#0d0d0d';
-        for (let i = 0; i < 8; i++) {
-          const bWidth = 50 + Math.random() * 70;
-          const bHeight = 100 + Math.random() * 120;
-          const bx = i * 100 + Math.random() * 20;
-          const by = groundLevel - bHeight + Math.random() * 30;
-          ctx.fillRect(bx, by, bWidth, bHeight);
+        // Draw a pre‑rendered pixel art background of a burning city.
+        if (backgroundImg.complete && backgroundImg.naturalWidth) {
+          ctx.drawImage(backgroundImg, 0, 0, WIDTH, HEIGHT);
+        } else {
+          // Fallback to a simple gradient if the image isn't loaded yet.
+          const grad = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+          grad.addColorStop(0, '#1a1a1a');
+          grad.addColorStop(1, '#330000');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, WIDTH, HEIGHT);
         }
-        // Flames
-        for (let i = 0; i < 30; i++) {
-          const fx = Math.random() * WIDTH;
-          const fy = groundLevel - Math.random() * 60;
-          const fw = 6;
-          const fh = 18 + Math.random() * 20;
-          const grd = ctx.createLinearGradient(fx, fy, fx, fy + fh);
-          grd.addColorStop(0, 'rgba(255, 80, 0, 0.8)');
-          grd.addColorStop(0.5, 'rgba(255, 150, 0, 0.6)');
-          grd.addColorStop(1, 'rgba(255, 220, 0, 0.0)');
-          ctx.fillStyle = grd;
-          ctx.fillRect(fx, fy, fw, fh);
-        }
-        // Ground
-        ctx.fillStyle = '#2c2c2c';
-        ctx.fillRect(0, groundLevel, WIDTH, HEIGHT - groundLevel);
       }
 
       // Main loop using requestAnimationFrame
