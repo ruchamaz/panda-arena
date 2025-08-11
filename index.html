@@ -250,8 +250,9 @@
         draw(ctx) {
           const px = this.x;
           const py = this.y;
-          // If sprite sheet loaded, draw pixel-art panda and exit early
-          if (pandaImg.complete && pandaImg.naturalWidth) {
+          // If sprite sheet loaded, draw pixel-art panda and exit early.  
+          // Force fallback drawing by short‑circuiting this condition
+          if (false && pandaImg.complete && pandaImg.naturalWidth) {
             const cols = 5;
             const rows = 4;
             const frameW = pandaImg.width / cols;
@@ -259,29 +260,60 @@
             ctx.drawImage(pandaImg, 0, 0, frameW, frameH, px, py - 8, this.w, this.h + 8);
             return;
           }
-          // Draw panda body (rounded rectangle)
-          ctx.fillStyle = '#fff';
-          ctx.strokeStyle = '#000';
+          // Draw a cute superhero panda in a vintage arcade style when the sprite isn't loaded
+          // Head
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          const headRadius = this.h * 0.35;
+          const headX = px + this.w / 2;
+          const headY = py + this.h * 0.25;
+          ctx.arc(headX, headY, headRadius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#000000';
           ctx.lineWidth = 2;
-          roundRect(ctx, px, py, this.w, this.h, 6, true, true);
+          ctx.stroke();
           // Ears
-          ctx.fillStyle = '#000';
+          ctx.fillStyle = '#000000';
+          const earRadius = this.h * 0.15;
           ctx.beginPath();
-          ctx.arc(px + 6, py - 6, 6, 0, Math.PI * 2);
-          ctx.arc(px + this.w - 6, py - 6, 6, 0, Math.PI * 2);
+          ctx.arc(headX - this.w * 0.3, py + this.h * 0.05, earRadius, 0, Math.PI * 2);
+          ctx.arc(headX + this.w * 0.3, py + this.h * 0.05, earRadius, 0, Math.PI * 2);
           ctx.fill();
-          // Eyes
-          ctx.fillStyle = '#000';
+          // Red mask across eyes
+          ctx.fillStyle = '#d22e2e';
+          const maskHeight = this.h * 0.18;
+          ctx.fillRect(px + this.w * 0.05, py + this.h * 0.18, this.w * 0.9, maskHeight);
+          // Eye whites
+          ctx.fillStyle = '#ffffff';
+          const eyeRadius = this.h * 0.07;
           ctx.beginPath();
-          ctx.arc(px + 10, py + 12, 3, 0, Math.PI * 2);
-          ctx.arc(px + this.w - 10, py + 12, 3, 0, Math.PI * 2);
+          ctx.arc(headX - this.w * 0.2, py + this.h * 0.28, eyeRadius, 0, Math.PI * 2);
+          ctx.arc(headX + this.w * 0.2, py + this.h * 0.28, eyeRadius, 0, Math.PI * 2);
           ctx.fill();
-          // Cape
-          ctx.fillStyle = 'rgba(255,0,0,0.5)';
+          // Eye pupils
+          ctx.fillStyle = '#000000';
+          const pupilRadius = this.h * 0.03;
           ctx.beginPath();
-          ctx.moveTo(px + this.w / 2, py + 10);
-          ctx.lineTo(px + this.w / 2 + 20, py + this.h + 10);
-          ctx.lineTo(px + this.w / 2 - 20, py + this.h + 10);
+          ctx.arc(headX - this.w * 0.2, py + this.h * 0.28, pupilRadius, 0, Math.PI * 2);
+          ctx.arc(headX + this.w * 0.2, py + this.h * 0.28, pupilRadius, 0, Math.PI * 2);
+          ctx.fill();
+          // Body in blue suit
+          ctx.fillStyle = '#0055aa';
+          const bodyY = py + this.h * 0.3;
+          const bodyH = this.h * 0.7;
+          ctx.fillRect(px, bodyY, this.w, bodyH);
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(px, bodyY, this.w, bodyH);
+          // Belt
+          ctx.fillStyle = '#ffcc00';
+          ctx.fillRect(px, py + this.h * 0.65, this.w, this.h * 0.08);
+          // Red cape
+          ctx.fillStyle = '#d22e2e';
+          ctx.beginPath();
+          ctx.moveTo(px + this.w / 2, py + this.h * 0.4);
+          ctx.lineTo(px + this.w / 2 + this.w, py + this.h * 0.7);
+          ctx.lineTo(px + this.w / 2 - this.w, py + this.h * 0.7);
           ctx.closePath();
           ctx.fill();
         }
@@ -344,8 +376,9 @@
           // Draw a glowing sphere
           ctx.save();
           const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
-          gradient.addColorStop(0, '#ff00ff');
-          gradient.addColorStop(1, 'rgba(255, 0, 255, 0)');
+          // Render the projectile as a fiery orb – start bright orange fading to transparent
+          gradient.addColorStop(0, '#ff6a00');
+          gradient.addColorStop(1, 'rgba(255,106,0,0)');
           ctx.fillStyle = gradient;
           ctx.beginPath();
           ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
@@ -405,7 +438,8 @@
         }
         draw(ctx) {
           // Draw the minotaur using a pixel art sprite. Crop the first frame from the sprite sheet.
-          if (minotaurImg.complete && minotaurImg.naturalWidth) {
+          // Force use of the vector fallback by short‑circuiting the image condition
+          if (false && minotaurImg.complete && minotaurImg.naturalWidth) {
             const cols = 8; // number of columns in sprite sheet
             const rows = 5; // number of rows in sprite sheet
             const frameW = minotaurImg.width / cols;
@@ -423,37 +457,43 @@
               this.h
             );
           } else {
-            // If image not loaded, draw a stylized minotaur similar to the original design.
-            // Body
-            ctx.fillStyle = '#7b4f2c';
-            ctx.strokeStyle = '#000';
+            // If the sprite isn't loaded, draw a menacing red bull in a retro arcade style.
+            // Body: deep red rectangle with black outline
+            ctx.fillStyle = '#9d1d1d';
+            ctx.strokeStyle = '#000000';
             ctx.lineWidth = 2;
             roundRect(ctx, this.x, this.y, this.w, this.h, 8, true, true);
-            // Horns
-            ctx.fillStyle = '#f5f5f5';
+            // Dark horns
+            ctx.fillStyle = '#2e2e2e';
             ctx.beginPath();
             ctx.moveTo(this.x + 15, this.y - 8);
-            ctx.lineTo(this.x + 10, this.y - 30);
-            ctx.lineTo(this.x + 25, this.y - 15);
+            ctx.lineTo(this.x + 5, this.y - 35);
+            ctx.lineTo(this.x + 30, this.y - 15);
             ctx.closePath();
             ctx.fill();
             ctx.beginPath();
             ctx.moveTo(this.x + this.w - 15, this.y - 8);
-            ctx.lineTo(this.x + this.w - 10, this.y - 30);
-            ctx.lineTo(this.x + this.w - 25, this.y - 15);
+            ctx.lineTo(this.x + this.w - 5, this.y - 35);
+            ctx.lineTo(this.x + this.w - 30, this.y - 15);
             ctx.closePath();
             ctx.fill();
-            // Eyes
-            ctx.fillStyle = '#fff';
+            // Eyes: glowing purple
+            ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.arc(this.x + 25, this.y + 25, 6, 0, Math.PI * 2);
-            ctx.arc(this.x + this.w - 25, this.y + 25, 6, 0, Math.PI * 2);
+            ctx.arc(this.x + 25, this.y + 25, 7, 0, Math.PI * 2);
+            ctx.arc(this.x + this.w - 25, this.y + 25, 7, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#000';
+            ctx.fillStyle = '#b000c9';
             ctx.beginPath();
-            ctx.arc(this.x + 25, this.y + 25, 2, 0, Math.PI * 2);
-            ctx.arc(this.x + this.w - 25, this.y + 25, 2, 0, Math.PI * 2);
+            ctx.arc(this.x + 25, this.y + 25, 3, 0, Math.PI * 2);
+            ctx.arc(this.x + this.w - 25, this.y + 25, 3, 0, Math.PI * 2);
             ctx.fill();
+            // Nose ring
+            ctx.strokeStyle = '#d6b600';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.x + this.w / 2, this.y + 50, 8, 0, Math.PI * 2);
+            ctx.stroke();
           }
         }
       }
@@ -709,16 +749,23 @@
 
       // Background art: simple gradient and silhouettes
       function drawBackground() {
-        // Draw a pre‑rendered pixel art background of a burning city.
-        if (backgroundImg.complete && backgroundImg.naturalWidth) {
-          ctx.drawImage(backgroundImg, 0, 0, WIDTH, HEIGHT);
-        } else {
-          // Fallback to a simple gradient if the image isn't loaded yet.
-          const grad = ctx.createLinearGradient(0, 0, 0, HEIGHT);
-          grad.addColorStop(0, '#1a1a1a');
-          grad.addColorStop(1, '#330000');
-          ctx.fillStyle = grad;
-          ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        // Draw a bright daytime sky with fluffy clouds for a vintage arcade feel.
+        ctx.fillStyle = '#87CEEB';
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        // Add several cloud shapes using overlapping circles to create a retro look.
+        const clouds = [
+          { x: 80, y: 60, w: 40 },
+          { x: 260, y: 100, w: 50 },
+          { x: 480, y: 80, w: 60 },
+          { x: 620, y: 140, w: 45 }
+        ];
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        for (const c of clouds) {
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, c.w, 0, Math.PI * 2);
+          ctx.arc(c.x + c.w * 0.8, c.y + c.w * 0.2, c.w * 1.2, 0, Math.PI * 2);
+          ctx.arc(c.x - c.w * 0.8, c.y + c.w * 0.2, c.w * 1.2, 0, Math.PI * 2);
+          ctx.fill();
         }
       }
 
