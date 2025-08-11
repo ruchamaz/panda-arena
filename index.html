@@ -466,11 +466,23 @@
             );
           } else {
             // If the sprite isn't loaded, draw a friendly bull in a soft, welcoming style.
-            // Body: light brown rectangle with a dark outline
+            // Body: light brown ellipse with a dark outline (no longer a square)
             ctx.fillStyle = '#c68a6b';
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 2;
-            roundRect(ctx, this.x, this.y, this.w, this.h, 8, true, true);
+            ctx.beginPath();
+            // Draw an ellipse centered within the bounding box. This makes the bull look rounder and friendlier.
+            ctx.ellipse(
+              this.x + this.w / 2,
+              this.y + this.h / 2,
+              this.w / 2,
+              this.h / 2,
+              0,
+              0,
+              Math.PI * 2
+            );
+            ctx.fill();
+            ctx.stroke();
             // Horns: gentle beige
             ctx.fillStyle = '#f5e6ca';
             ctx.beginPath();
