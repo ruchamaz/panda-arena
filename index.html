@@ -260,13 +260,13 @@
             ctx.drawImage(pandaImg, 0, 0, frameW, frameH, px, py - 8, this.w, this.h + 8);
             return;
           }
-          // Draw a cute superhero panda in a vintage arcade style when the sprite isn't loaded
+          // Draw a cute and friendly panda when no sprite sheet is loaded
           // Head
           ctx.fillStyle = '#ffffff';
           ctx.beginPath();
-          const headRadius = this.h * 0.35;
+          const headRadius = this.h * 0.38;
           const headX = px + this.w / 2;
-          const headY = py + this.h * 0.25;
+          const headY = py + this.h * 0.2;
           ctx.arc(headX, headY, headRadius, 0, Math.PI * 2);
           ctx.fill();
           ctx.strokeStyle = '#000000';
@@ -274,46 +274,54 @@
           ctx.stroke();
           // Ears
           ctx.fillStyle = '#000000';
-          const earRadius = this.h * 0.15;
+          const earRadius = this.h * 0.14;
           ctx.beginPath();
-          ctx.arc(headX - this.w * 0.3, py + this.h * 0.05, earRadius, 0, Math.PI * 2);
-          ctx.arc(headX + this.w * 0.3, py + this.h * 0.05, earRadius, 0, Math.PI * 2);
+          ctx.arc(headX - this.w * 0.32, py + this.h * 0.02, earRadius, 0, Math.PI * 2);
+          ctx.arc(headX + this.w * 0.32, py + this.h * 0.02, earRadius, 0, Math.PI * 2);
           ctx.fill();
-          // Red mask across eyes
-          ctx.fillStyle = '#d22e2e';
-          const maskHeight = this.h * 0.18;
-          ctx.fillRect(px + this.w * 0.05, py + this.h * 0.18, this.w * 0.9, maskHeight);
-          // Eye whites
+          // Eyes: large white eyes with highlights
           ctx.fillStyle = '#ffffff';
-          const eyeRadius = this.h * 0.07;
+          const eyeRadius = this.h * 0.08;
           ctx.beginPath();
-          ctx.arc(headX - this.w * 0.2, py + this.h * 0.28, eyeRadius, 0, Math.PI * 2);
-          ctx.arc(headX + this.w * 0.2, py + this.h * 0.28, eyeRadius, 0, Math.PI * 2);
+          ctx.arc(headX - this.w * 0.18, py + this.h * 0.22, eyeRadius, 0, Math.PI * 2);
+          ctx.arc(headX + this.w * 0.18, py + this.h * 0.22, eyeRadius, 0, Math.PI * 2);
           ctx.fill();
-          // Eye pupils
           ctx.fillStyle = '#000000';
           const pupilRadius = this.h * 0.03;
           ctx.beginPath();
-          ctx.arc(headX - this.w * 0.2, py + this.h * 0.28, pupilRadius, 0, Math.PI * 2);
-          ctx.arc(headX + this.w * 0.2, py + this.h * 0.28, pupilRadius, 0, Math.PI * 2);
+          ctx.arc(headX - this.w * 0.18, py + this.h * 0.22, pupilRadius, 0, Math.PI * 2);
+          ctx.arc(headX + this.w * 0.18, py + this.h * 0.22, pupilRadius, 0, Math.PI * 2);
           ctx.fill();
-          // Body in blue suit
-          ctx.fillStyle = '#0055aa';
-          const bodyY = py + this.h * 0.3;
-          const bodyH = this.h * 0.7;
+          // Add rosy cheeks
+          ctx.fillStyle = '#f5a5c5';
+          const cheekRadius = this.h * 0.05;
+          ctx.beginPath();
+          ctx.arc(headX - this.w * 0.25, py + this.h * 0.28, cheekRadius, 0, Math.PI * 2);
+          ctx.arc(headX + this.w * 0.25, py + this.h * 0.28, cheekRadius, 0, Math.PI * 2);
+          ctx.fill();
+          // Simple smile
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(headX, py + this.h * 0.27, this.h * 0.12, Math.PI * 0.1, Math.PI * 0.9);
+          ctx.stroke();
+          // Body in soft blue suit
+          ctx.fillStyle = '#8cc0de';
+          const bodyY = py + this.h * 0.36;
+          const bodyH = this.h * 0.64;
           ctx.fillRect(px, bodyY, this.w, bodyH);
           ctx.strokeStyle = '#000000';
           ctx.lineWidth = 2;
           ctx.strokeRect(px, bodyY, this.w, bodyH);
-          // Belt
-          ctx.fillStyle = '#ffcc00';
-          ctx.fillRect(px, py + this.h * 0.65, this.w, this.h * 0.08);
-          // Red cape
-          ctx.fillStyle = '#d22e2e';
+          // Belt in soft yellow
+          ctx.fillStyle = '#f5e663';
+          ctx.fillRect(px, py + this.h * 0.68, this.w, this.h * 0.07);
+          // Gentle cape in pastel pink
+          ctx.fillStyle = '#f4a4a8';
           ctx.beginPath();
-          ctx.moveTo(px + this.w / 2, py + this.h * 0.4);
-          ctx.lineTo(px + this.w / 2 + this.w, py + this.h * 0.7);
-          ctx.lineTo(px + this.w / 2 - this.w, py + this.h * 0.7);
+          ctx.moveTo(px + this.w / 2, py + this.h * 0.42);
+          ctx.lineTo(px + this.w / 2 + this.w, py + this.h * 0.72);
+          ctx.lineTo(px + this.w / 2 - this.w, py + this.h * 0.72);
           ctx.closePath();
           ctx.fill();
         }
@@ -457,38 +465,46 @@
               this.h
             );
           } else {
-            // If the sprite isn't loaded, draw a menacing red bull in a retro arcade style.
-            // Body: deep red rectangle with black outline
-            ctx.fillStyle = '#9d1d1d';
+            // If the sprite isn't loaded, draw a friendly bull in a soft, welcoming style.
+            // Body: light brown rectangle with a dark outline
+            ctx.fillStyle = '#c68a6b';
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 2;
             roundRect(ctx, this.x, this.y, this.w, this.h, 8, true, true);
-            // Dark horns
-            ctx.fillStyle = '#2e2e2e';
+            // Horns: gentle beige
+            ctx.fillStyle = '#f5e6ca';
             ctx.beginPath();
             ctx.moveTo(this.x + 15, this.y - 8);
-            ctx.lineTo(this.x + 5, this.y - 35);
-            ctx.lineTo(this.x + 30, this.y - 15);
+            ctx.lineTo(this.x + 8, this.y - 28);
+            ctx.lineTo(this.x + 30, this.y - 12);
             ctx.closePath();
             ctx.fill();
             ctx.beginPath();
             ctx.moveTo(this.x + this.w - 15, this.y - 8);
-            ctx.lineTo(this.x + this.w - 5, this.y - 35);
-            ctx.lineTo(this.x + this.w - 30, this.y - 15);
+            ctx.lineTo(this.x + this.w - 8, this.y - 28);
+            ctx.lineTo(this.x + this.w - 30, this.y - 12);
             ctx.closePath();
             ctx.fill();
-            // Eyes: glowing purple
+            // Eyes: large white eyes with black pupils
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.arc(this.x + 25, this.y + 25, 7, 0, Math.PI * 2);
-            ctx.arc(this.x + this.w - 25, this.y + 25, 7, 0, Math.PI * 2);
+            ctx.arc(this.x + 25, this.y + 25, 8, 0, Math.PI * 2);
+            ctx.arc(this.x + this.w - 25, this.y + 25, 8, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#b000c9';
+            ctx.fillStyle = '#000000';
             ctx.beginPath();
             ctx.arc(this.x + 25, this.y + 25, 3, 0, Math.PI * 2);
             ctx.arc(this.x + this.w - 25, this.y + 25, 3, 0, Math.PI * 2);
             ctx.fill();
-            // Nose ring
+            // Gentle smile
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            const mouthY = this.y + 60;
+            const mouthRadius = 20;
+            ctx.arc(this.x + this.w / 2, mouthY, mouthRadius, Math.PI * 0.1, Math.PI * 0.9);
+            ctx.stroke();
+            // Nose ring remains but toned down in color
             ctx.strokeStyle = '#d6b600';
             ctx.lineWidth = 2;
             ctx.beginPath();
